@@ -1,0 +1,10 @@
+A B 4
+A C 12
+A D 2
+C E 135
+A E 500
+E F 24
+B G 8
+C D 12
+B H 100
+F H 19
