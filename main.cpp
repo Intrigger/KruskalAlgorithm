@@ -7,15 +7,10 @@
 
 using namespace std;
 
-struct vertex
+struct edge // граньЫ
 {
-    string name; // название вершины
-};
-
-struct edge
-{ // грань
-    vertex from;
-    vertex to;
+    string from;
+    string to;
     double weight;
 };
 
@@ -29,11 +24,13 @@ private:
         queue_element *next;
     };
     queue_element *head;
+    queue_element *tail;
 
 public:
     Queue()
     {
         head = nullptr;
+        tail = nullptr;
     }
 
     //добавление вверх стека
@@ -44,18 +41,14 @@ public:
             head = new queue_element[1];
             head->value = value;
             head->next = nullptr;
+            tail = head;
         }
         else
         {
-            queue_element *cur = head;
-            while (cur->next != nullptr)
-            {
-                cur = cur->next;
-            }
-            cur->next = new queue_element[1];
-            cur = cur->next;
-            cur->value = value;
-            cur->next = nullptr;
+            tail->next = new queue_element[1];
+            tail = tail->next;
+            tail->value = value;
+            tail->next = nullptr;
         }
     }
 
@@ -67,6 +60,7 @@ public:
         queue_element *new_head = head->next;
         delete[] head;
         head = new_head;
+        if (head == nullptr) tail = nullptr;
     }
 
     //получение элемента по индексу
@@ -116,20 +110,44 @@ public:
 };
 
 template <class T>
-class Stack{
+class Stack
+{
 private:
-    
-    struct stack_element{
+    struct stack_element
+    {
         T value;
-        stack_element* next;
+        stack_element *next;
     };
 
-    stack_element* head;
+    stack_element *head;
 
 public:
-    Stack(){
+    Stack()
+    {
         head = nullptr;
     }
+
+    // void push(const T& value)
+    // {
+    //     if (head == nullptr)
+    //     {
+    //         head = new stack_element[1];
+    //         head->value = value;
+    //         head->next = nullptr;
+    //     }
+    //     else
+    //     {
+    //         stack_element *cur = head;
+    //         while (cur->next != nullptr)
+    //         {
+    //             cur = cur->next;
+    //         }
+    //         cur->next = new stack_element[1];
+    //         cur = cur->next;
+    //         cur->value = value;
+    //         cur->next = nullptr;
+    //     }
+    // }
 
     void push(const T& value){
         if (head == nullptr){
@@ -138,55 +156,44 @@ public:
             head->next = nullptr;
         }
         else{
-            stack_element* cur = head;
-            while (cur->next != nullptr){
-                cur = cur->next;
-            }
-            cur->next = new stack_element[1];
-            cur = cur->next;
-            cur->value = value;
-            cur->next = nullptr;
+            stack_element* new_top = new stack_element[1];
+            new_top->next = head;
+            head = new_top;
+            head->value = value;
         }
     }
 
-    T get_top(){
-        if (head == nullptr){
+    T get_top()
+    {
+        if (head == nullptr)
+        {
             cerr << "Wrong index!\n";
             exit(-1);
         }
-        stack_element* cur = head;
-        while (cur->next != nullptr){
-            cur = cur->next;
-        }
-        return cur->value;   
+        return head->value;
     }
 
-    void pop(){
-        if (head == nullptr) return;
-        stack_element* cur = head;
-        stack_element* pre_cur = cur;
-        while (cur->next != nullptr){
-            pre_cur = cur;
-            cur = cur->next;
-        }
-
-        delete[] cur;
-        if (cur == head) head = nullptr;
-        if (pre_cur != nullptr) pre_cur->next = nullptr;
+    void pop()
+    {
+        if (head == nullptr)
+            return;
+        stack_element* new_head = head->next;
+        delete[] head;
+        head = new_head;
     }
 
-    size_t get_size(){
+    size_t get_size()
+    {
         size_t result = 0;
-        stack_element* cur = head;
-        while (cur != nullptr){
+        stack_element *cur = head;
+        while (cur != nullptr)
+        {
             cur = cur->next;
             result++;
         }
         return result;
     }
-
 };
-
 
 template <class T>
 class Vector
@@ -296,7 +303,6 @@ public:
             stack.pop();
             stack.push(make_pair(left, middle));
             stack.push(make_pair(middle + 1, right));
-
         }
     }
 
@@ -387,7 +393,6 @@ public:
         }
         cerr << "Error in get_value()\n";
         exit(-1);
-        
     }
 
     //размер сета
@@ -514,15 +519,15 @@ void Kruskal_Algo(Vector<edge> &edges, Set<string> &s, size_t &result)
         //для каждой грани,
         //для каждой вершины этой грани
         //проверяем, находится ли эта вершина в одной КС со второй вершиной
-        size_t first_id = s.get_id(edges[i].from.name);
-        size_t second_id = s.get_id(edges[i].to.name);
+        size_t first_id = s.get_id(edges[i].from);
+        size_t second_id = s.get_id(edges[i].to);
         if (dset.Find(first_id) != dset.Find(second_id))
-        {
+        { 
             cout << "First_id: " << first_id << "\tSecond_id: " << second_id << endl;
             dset.Union(first_id, second_id);
             result += edges[i].weight;
 
-            cout << "Edge " << s.get_value(first_id)  << " " << s.get_value(second_id) << " " << edges[i].weight << " added!\n";
+            cout << "Edge " << s.get_value(first_id) << " " << s.get_value(second_id) << " " << edges[i].weight << " added!\n";
         }
     }
 }
@@ -556,21 +561,21 @@ void BFS(Vector<Vector<size_t>> &graph)
         colors[queue.get(0)] = 2; // black
         queue.pop();
     }
-
 }
 
-void DFS(Vector<Vector<size_t>> &graph){
+void DFS(Vector<Vector<size_t>> &graph)
+{
     size_t size = graph.get_size();
     int *colors = new int[size];
 
     for (int i = 0; i < size; i++)
         colors[i] = 0;
 
-
     Stack<int> stack;
     stack.push(0);
 
-    while (stack.get_size() != 0){
+    while (stack.get_size() != 0)
+    {
         size_t top = stack.get_top();
         cout << "Current vertex: " << top << "\t";
         cout << "Added: ";
@@ -591,10 +596,14 @@ void DFS(Vector<Vector<size_t>> &graph){
     }
 }
 
-int comp_int(int a, int b){
-    if (a > b) return -1;
-    if (a < b) return 1;
-    if (a == b) return 0;
+int comp_int(int a, int b)
+{
+    if (a > b)
+        return -1;
+    if (a < b)
+        return 1;
+    if (a == b)
+        return 0;
 }
 
 int main()
@@ -604,42 +613,40 @@ int main()
     fin.open("input.txt");
 
     Vector<edge> edges;
-    Set<string> s;
+    Set<string> set;
 
     while (!fin.eof())
     {
-        vertex v1, v2;
+        string from, to;
         double weight;
-        fin >> v1.name >> v2.name >> weight;
-        s.add(v1.name);
-        s.add(v2.name);
-        edges.push_back({v1, v2, weight});
+        fin >> from >> to >> weight;
+        set.add(from);
+        set.add(to);
+        edges.push_back({from, to, weight});
     }
 
-    Vector<Vector<size_t>> graph(s.get_size());
+    Vector<Vector<size_t>> graph(set.get_size());
 
     for (int i = 0; i < edges.get_size(); i++)
     {
-        graph[s.get_id(edges[i].from.name)].push_back(s.get_id(edges[i].to.name));
-        graph[s.get_id(edges[i].to.name)].push_back(s.get_id(edges[i].from.name));
+        graph[set.get_id(edges[i].from)].push_back(set.get_id(edges[i].to));
+        graph[set.get_id(edges[i].to)].push_back(set.get_id(edges[i].from));
     }
 
     fin.close();
 
     size_t result = 0;
 
-    Kruskal_Algo(edges, s, result);
-
+    Kruskal_Algo(edges, set, result);
+ 
     cout << "\nKruskal algo result: " << result << endl;
 
     cout << "BFS:\n";
 
     BFS(graph);
 
-
     cout << "DFS: \n\n";
     DFS(graph);
-
 
     return 0;
 }
